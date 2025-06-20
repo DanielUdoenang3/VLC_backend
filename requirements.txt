@@ -1,0 +1,13 @@
+alembic
+bcrypt
+fastapi[standard]
+firebase-admin
+passlib
+psycopg2-binary
+pydantic-settings
+python-decouple
+python-jose
+sqlalchemy
+uuid6
+uuid7
+uvicorn
