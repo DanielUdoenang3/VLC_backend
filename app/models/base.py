@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Enum as Boolean
+from sqlalchemy import Column, DateTime, Enum, String, Integer as Boolean
 
 from app.models.base_model import BaseModel
 from datetime import datetime
