@@ -7,7 +7,8 @@ from app.services.auth import create_user, login_user
 from app.services.auth import get_user_by_email, generate_and_send_reset_code, verify_reset_code, update_user_password, clear_reset_code
 from app.utils.custom_response import success_response, error_response
 from app.schema.base import FirebaseTokenRequest
-from app.services.auth import handle_google_signin, handle_google_signup
+from app.services.auth import google_sign_in_sign_up
+from app.services import get_current_user
 
 
 async def email_password_auth(user: UserCreate, db: Session = Depends(get_db)) -> UserCreate:
@@ -16,35 +17,45 @@ async def email_password_auth(user: UserCreate, db: Session = Depends(get_db)) -
 async def signin_user(data: UserLogin, db: Session = Depends(get_db)) -> UserLogin:
     return await login_user(data=data, db=db)
 
-async def google_signup(
-    request: FirebaseTokenRequest,
-    db: Session = Depends(get_db)
-):
+# async def google_signup(
+#     request: FirebaseTokenRequest,
+#     db: Session = Depends(get_db)
+# ):
+#     try:
+#         result = await handle_google_signup(db, request.id_token)
+#         return result
+#     except HTTPException as e:
+#         raise e
+#     except Exception as e:
+#         raise HTTPException(
+#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+#             detail=f"An unexpected error occurred during Google Sign-Up: {e}",
+#         )
+
+# async def google_signin(
+#     request: FirebaseTokenRequest,
+#     db: Session = Depends(get_db)
+# ):
+#     try:
+#         result = await handle_google_signin(db, request.id_token)
+#         return result
+#     except HTTPException as e:
+#         raise e
+#     except Exception as e:
+#         raise HTTPException(
+#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+#             detail=f"An unexpected error occurred during Google Sign-In: {e}",
+#         )
+
+async def google_handle(request: FirebaseTokenRequest, db: Session = Depends(get_db)):
     try:
-        result = await handle_google_signup(db, request.id_token)
-        return result
-    except HTTPException as e:
-        raise e
+        return await google_sign_in_sign_up(db, request.id_token)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An unexpected error occurred during Google Sign-Up: {e}",
         )
 
-async def google_signin(
-    request: FirebaseTokenRequest,
-    db: Session = Depends(get_db)
-):
-    try:
-        result = await handle_google_signin(db, request.id_token)
-        return result
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An unexpected error occurred during Google Sign-In: {e}",
-        )
 
 async def forgot_password(payload: PasswordResetRequest, db: Session = Depends(get_db)):
     """
@@ -83,3 +94,6 @@ def reset_password(payload: PasswordResetVerify, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to clear reset code after password change.")
 
     return success_response(status_code=status.HTTP_200_OK, message="Password reset successfully.")
+
+async def get_user_profile(current_user=Depends(get_current_user)):
+    return current_user

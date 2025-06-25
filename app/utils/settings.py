@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRES_IN: int = config("ACCESS_TOKEN_EXPIRES_IN")
     REFRESH_TOKEN_EXPIRES_IN: int = config("REFRESH_TOKEN_EXPIRES_IN")
 
+    FE_URL: str = config("FE_URL")
+
     # Database configurations
     DB_HOST: str = config("DB_HOST")
     DB_PORT: int = config("DB_PORT", cast=int)

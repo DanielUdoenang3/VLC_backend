@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 import smtplib
 from email.mime.text import MIMEText
 import firebase_admin
+from firebase_admin import auth
 from firebase_admin import credentials
 from app.utils.settings import settings
 from app.utils.pass_hash import hash_password
@@ -170,7 +171,7 @@ def clear_reset_code(db: Session, user: models.User) -> bool:
         return True
     except Exception as e:
         print(e)
-        raise error_response(
+        return error_response(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             message="Failed to clear reset code."
         )
@@ -185,60 +186,102 @@ def initialize_firebase():
     firebase_admin.initialize_app(cred)
     print("Firebase Admin SDK initialized successfully.")
 
-def handle_google_signin(db: Session, firebase_id_token: str) -> AuthSuccessResponse:
-        decoded_token = firebase_admin.auth.verify_id_token(firebase_id_token)
-        email = decoded_token.get("email")
+# def handle_google_signin(db: Session, firebase_id_token: str) -> AuthSuccessResponse:
+#         decoded_token = auth.verify_id_token(firebase_id_token)
+#         email = decoded_token.get("email")
 
-        if not email:
-            raise HTTPException(status_code=400, detail="Email not found in Google token.")
+#         if not email:
+#             raise HTTPException(status_code=400, detail="Email not found in Google token.")
 
-        user = db.query(User).filter(User.email == email).first()
+#         user = db.query(User).filter(User.email == email).first()
 
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found.")
+#         if not user:
+#             raise HTTPException(status_code=404, detail="User not found.")
 
-        access_token = create_access_token(data={"email": user.email})
+#         access_token = create_access_token({"email": user.email})
         
-        return {
-            "user": {
-                "id": user.id,
-                "email": user.email,
-                "username": user.username
-            },
-            "access_token": access_token
-        }
+#         return {
+#             "id": user.id,
+#             "email": user.email,
+#             "username": user.username,
+#             "access_token": access_token
+#         }
 
-async def handle_google_signup(db: Session, firebase_id_token: str):
-    decoded_token = firebase_admin.auth.verify_id_token(firebase_id_token)
+# async def handle_google_signup(db: Session, firebase_id_token: str):
+#     decoded_token = auth.verify_id_token(firebase_id_token)
+#     email = decoded_token.get("email")
+#     name = decoded_token.get("name") or "GoogleUser"
+
+#     if not email:
+#         raise HTTPException(status_code=400, detail="Email not found in Google token.")
+
+#     existing_user = db.query(User).filter(User.email == email).first()
+    
+#     if existing_user:
+#         raise HTTPException(status_code=409, detail="User already exists.")
+
+#     dummy_password = hash_password(firebase_id_token[:12])  # Not used for login
+
+#     new_user = User(
+#         email=email,
+#         username=name,
+#         hashed_password=dummy_password
+#     )
+#     db.add(new_user)
+#     db.commit()
+#     db.refresh(new_user)
+
+#     access_token = create_access_token(data={"email": new_user.email})
+    
+#     return {
+#         "id": new_user.id,
+#         "email": new_user.email,
+#         "username": new_user.username,
+#         "access_token": access_token
+#     }
+
+async def google_sign_in_sign_up(db: Session, firebase_id_token: str):
+    decoded_token = auth.verify_id_token(firebase_id_token)
     email = decoded_token.get("email")
     name = decoded_token.get("name") or "GoogleUser"
 
     if not email:
-        raise HTTPException(status_code=400, detail="Email not found in Google token.")
-
-    existing_user = db.query(User).filter(User.email == email).first()
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Email not found in Google token.")
     
-    if existing_user:
-        raise HTTPException(status_code=409, detail="User already exists.")
+    user = db.query(User).filter(User.email == email).first()
 
-    dummy_password = hash_password(firebase_id_token[:12])  # Not used for login
+    if user:
+        access_token = create_access_token({"email": user.email})
+        
+        res = {
+            "id": user.id,
+            "email": user.email,
+            "username": user.username,
+            "access_token": access_token
+        }
 
-    new_user = User(
-        email=email,
-        username=name,
-        hashed_password=dummy_password
-    )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+        return success_response(
+            status_code=status.HTTP_200_OK,
+            message="Login In successfully",
+            data=res
+        )
+    else:
+        dummy_password = hash_password(firebase_id_token[:12])  # Not used for login
 
-    access_token = create_access_token(data={"email": new_user.email})
-    
-    return {
-        "user": {
+        new_user = User(
+            email=email,
+            username=name,
+            hashed_password=dummy_password
+        )
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+
+        access_token = create_access_token({"email": new_user.email})
+
+        res={
             "id": new_user.id,
             "email": new_user.email,
-            "username": new_user.username
-        },
-        "access_token": access_token
-    }
+            "username": new_user.username,
+            "access_token": access_token
+        }

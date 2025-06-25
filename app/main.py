@@ -6,6 +6,7 @@ from app.utils.settings import settings
 from contextlib import asynccontextmanager
 
 
+FE_URL=settings.FE_URL
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Application startup event triggered. Initializing Firebase...")
@@ -19,13 +20,13 @@ app = FastAPI(lifespan=lifespan)
 origins = [
     "http://localhost:3000",
     "http://localhost:8000",
-    "http://localhost:5500"
+    f"{FE_URL}"
 ]
 
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://vlc-qoi7.onrender.com"],
+    allow_origins=[f"{FE_URL}"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -36,4 +37,4 @@ app.include_router(user_router)
 
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to GIDE AFRICA API"}
+    return {"message": "Welcome to VLC-Backend API"}

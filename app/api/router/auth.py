@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.controller.auth import email_password_auth, signin_user, google_signin, google_signup
+from app.api.controller.auth import email_password_auth, signin_user, google_sign_in_sign_up, get_user_profile
 from app.api.controller.auth import email_password_auth, signin_user
 from app.api.controller.auth import forgot_password, reset_password
 
@@ -23,19 +23,11 @@ user_router.add_api_route(
 )
 
 user_router.add_api_route(
-    "/google-sign-in",
-    endpoint=google_signin,
-    methods=["POST"],
-    response_model=None,
-    summary="Sign in with Google"
-)
-
-user_router.add_api_route(
     "/google-sign-up",
-    endpoint=google_signup,
+    endpoint=google_sign_in_sign_up,
     methods=["POST"],
     response_model=None,
-    summary="Sign up with Google"
+    summary="Sign up and Sign in with Google"
 )
 
 user_router.add_api_route(
@@ -52,4 +44,12 @@ user_router.add_api_route(
     methods=["POST"],
     response_model=None,
     summary="Reset Password",
+)
+
+user_router.add_api_route(
+    "/get_current_user",
+    endpoint=get_user_profile,
+    methods=["GET"],
+    response_model=None,
+    summary="Get Current User"
 )
