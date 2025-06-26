@@ -285,3 +285,9 @@ async def google_sign_in_sign_up(db: Session, firebase_id_token: str):
             "username": new_user.username,
             "access_token": access_token
         }
+
+        return success_response(
+            status_code=status.HTTP_200_OK,
+            message="User created successfully",
+            data=res
+        )
