@@ -17,36 +17,6 @@ async def email_password_auth(user: UserCreate, db: Session = Depends(get_db)) -
 async def signin_user(data: UserLogin, db: Session = Depends(get_db)) -> UserLogin:
     return await login_user(data=data, db=db)
 
-# async def google_signup(
-#     request: FirebaseTokenRequest,
-#     db: Session = Depends(get_db)
-# ):
-#     try:
-#         result = await handle_google_signup(db, request.id_token)
-#         return result
-#     except HTTPException as e:
-#         raise e
-#     except Exception as e:
-#         raise HTTPException(
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#             detail=f"An unexpected error occurred during Google Sign-Up: {e}",
-#         )
-
-# async def google_signin(
-#     request: FirebaseTokenRequest,
-#     db: Session = Depends(get_db)
-# ):
-#     try:
-#         result = await handle_google_signin(db, request.id_token)
-#         return result
-#     except HTTPException as e:
-#         raise e
-#     except Exception as e:
-#         raise HTTPException(
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#             detail=f"An unexpected error occurred during Google Sign-In: {e}",
-#         )
-
 async def google_handle(request: FirebaseTokenRequest, db: Session = Depends(get_db)):
     try:
         return await google_sign_in_sign_up(db, request.id_token)
